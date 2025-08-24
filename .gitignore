@@ -54,6 +54,9 @@ coverage/
 tmp/
 temp/
 
+# Local development files
+.local/
+
 # Archive files
 *.tar.gz
 *.zip
