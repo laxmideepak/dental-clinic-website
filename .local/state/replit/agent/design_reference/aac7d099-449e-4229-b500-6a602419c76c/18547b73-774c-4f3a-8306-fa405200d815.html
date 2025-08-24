@@ -1,0 +1,517 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 Back to School Savings | Jefferson Dental & Orthodontics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'jefferson-blue': '#4A90E2',
+                        'jefferson-dark-blue': '#2C5AA0',
+                        'jefferson-pink': '#E91E63',
+                        'jefferson-lime': '#8BC34A'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #4A90E2 0%, #7BB3F0 100%);
+        }
+        .countdown-timer {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+        .testimonial-card {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .testimonial-card.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .testimonial-card.hidden {
+            transform: translateX(100%);
+            opacity: 0;
+            position: absolute;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 lg:h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <div class="flex items-center">
+                        <i class="fas fa-tooth text-jefferson-blue text-2xl mr-2"></i>
+                        <div>
+                            <div class="text-jefferson-dark-blue font-bold text-lg lg:text-xl">JEFFERSON</div>
+                            <div class="text-xs text-gray-600 -mt-1">DENTAL & ORTHODONTICS</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phone and CTA -->
+                <div class="flex items-center space-x-4">
+                    <div class="hidden sm:flex items-center text-gray-700">
+                        <i class="fas fa-phone text-jefferson-blue mr-2"></i>
+                        <span class="font-semibold text-lg" data-bind="phone">972-808-0401</span>
+                    </div>
+                    <button class="bg-jefferson-blue text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg font-semibold hover:bg-jefferson-dark-blue transition-colors duration-200" data-event="click:bookAppointment">
+                        BOOK AN APPOINTMENT
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: Hero Section -->
+    <section class="hero-gradient text-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Left Content -->
+                <div class="text-center lg:text-left z-10 relative">
+                    <!-- Tooth and Pencil Illustration -->
+                    <div class="mb-8 flex justify-center lg:justify-start">
+                        <div class="relative">
+                            <!-- Pencil -->
+                            <div class="relative mr-4">
+                                <div class="w-3 h-16 bg-yellow-400 rounded-full transform rotate-45"></div>
+                                <div class="w-4 h-4 bg-pink-300 rounded-full absolute -top-1 -left-0.5 transform rotate-45"></div>
+                            </div>
+                            <!-- Tooth -->
+                            <div class="absolute top-0 left-8">
+                                <i class="fas fa-tooth text-white text-6xl"></i>
+                                <!-- Sparkles -->
+                                <div class="absolute -top-2 -right-2">
+                                    <i class="fas fa-star text-yellow-300 text-lg"></i>
+                                </div>
+                                <div class="absolute top-2 -left-3">
+                                    <i class="fas fa-star text-yellow-300 text-sm"></i>
+                                </div>
+                                <div class="absolute -bottom-1 right-1">
+                                    <i class="fas fa-star text-yellow-300 text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2 text-lg font-medium">up to</div>
+                    <h1 class="text-5xl lg:text-7xl font-bold mb-4" data-bind="heroDiscount">$200 OFF*</h1>
+                    <p class="text-xl lg:text-2xl font-semibold mb-8" data-bind="heroTagline">SMILE BRIGHT THIS SCHOOL YEAR!</p>
+                    
+                    <button class="bg-jefferson-pink text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors duration-200 shadow-lg" data-event="click:bookNowSave">
+                        BOOK NOW & SAVE
+                    </button>
+                </div>
+                
+                <!-- Right Image -->
+                <div class="lg:text-right">
+                    <!-- Professional dental team photo showing three staff members in a modern dental office -->
+                    <img src="https://pixabay.com/get/g5e45d07b0c1a7294bc2b60804a1fccdabfc0c0df83565aba3c666fcd40ffdab38c1631dab5ee730175d98dab00a2ea03b28e60afb829ee68cdd34bb4a755120f_1280.jpg" 
+                         alt="Three dental professionals smiling in modern dental office" 
+                         class="rounded-xl shadow-2xl w-full h-auto max-w-md mx-auto lg:ml-auto" />
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Hero Section -->
+
+    <!-- @COMPONENT: Back to School Heading -->
+    <section class="py-12 bg-gray-50">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <h2 class="text-3xl lg:text-4xl font-bold text-gray-800 mb-8" data-bind="sectionHeading">Back to school savings are in session!</h2>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Back to School Heading -->
+
+    <!-- @COMPONENT: Promotional Offers -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Dental Treatment Offer -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex items-start mb-6">
+                        <div class="bg-jefferson-pink rounded-full p-4 mr-4 flex-shrink-0">
+                            <i class="fas fa-tooth text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Up to $200 OFF Dental Treatment¹</h3>
+                            <p class="text-gray-600 mb-6">Start this season with a healthy smile! Enjoy tiered savings when you pay out of pocket for dental care services.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="font-semibold text-gray-800 mb-3">For a limited time:</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-jefferson-blue mr-3"></i>
+                                <span><strong>$50 off</strong> when you spend $150+</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-jefferson-blue mr-3"></i>
+                                <span><strong>$100 off</strong> when you spend $300+</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-jefferson-blue mr-3"></i>
+                                <span><strong>$200 off</strong> when you spend $600+</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <button class="w-full bg-jefferson-blue text-white py-3 px-6 rounded-lg font-semibold hover:bg-jefferson-dark-blue transition-colors duration-200" data-event="click:getDentalDeal">
+                        Get this Deal
+                    </button>
+                </div>
+                
+                <!-- Orthodontics Offer -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex items-start mb-6">
+                        <div class="bg-jefferson-lime rounded-full p-4 mr-4 flex-shrink-0">
+                            <i class="fas fa-teeth text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Up to $500 off on Orthodontics²</h3>
+                            <p class="text-gray-600 mb-6">Whether you're starting a new school year or just ready for a fresh start, now's the perfect time to begin your smile journey.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="font-semibold text-gray-800 mb-3">For a limited time:</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-jefferson-lime mr-3"></i>
+                                <span><strong>Save $250</strong> on Invisalign Go</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-jefferson-lime mr-3"></i>
+                                <span><strong>Save $500</strong> on full braces or Invisalign at select locations</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <button class="w-full bg-jefferson-lime text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-200" data-event="click:getOrthoDeall">
+                        Get this Deal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Promotional Offers -->
+
+    <!-- @COMPONENT: Countdown Timer -->
+    <section class="countdown-timer text-white py-16">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <h2 class="text-3xl font-bold mb-8">Our special offers expire in:</h2>
+            
+            <div class="flex justify-center items-center space-x-8 mb-8">
+                <div class="text-center">
+                    <div class="text-5xl lg:text-6xl font-bold" id="days" data-bind="countdown.days">6</div>
+                    <div class="text-lg text-gray-300">days</div>
+                </div>
+                <div class="text-4xl">:</div>
+                <div class="text-center">
+                    <div class="text-5xl lg:text-6xl font-bold" id="hours" data-bind="countdown.hours">02</div>
+                    <div class="text-lg text-gray-300">hours</div>
+                </div>
+                <div class="text-4xl">:</div>
+                <div class="text-center">
+                    <div class="text-5xl lg:text-6xl font-bold" id="minutes" data-bind="countdown.minutes">12</div>
+                    <div class="text-lg text-gray-300">minutes</div>
+                </div>
+                <div class="text-4xl">:</div>
+                <div class="text-center">
+                    <div class="text-5xl lg:text-6xl font-bold" id="seconds" data-bind="countdown.seconds">03</div>
+                    <div class="text-lg text-gray-300">seconds</div>
+                </div>
+            </div>
+            
+            <button class="bg-jefferson-pink text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors duration-200 shadow-lg" data-event="click:bookNowAndSave">
+                BOOK NOW AND SAVE
+            </button>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Countdown Timer -->
+
+    <!-- @COMPONENT: Terms -->
+    <section class="py-8 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 text-sm text-gray-600 space-y-2">
+            <p><em>¹ Terms apply. Offer valid for non-covered services only. Discount amount based on total spend. Valid from 7/21/25 to 8/30/25. One per patient. Speak to a team member for more details.</em></p>
+            <p><em>² Terms apply. Offer valid on orthodontic treatment only. Must be paid in full to be eligible for discount. Patient eligibility may vary. Valid from 7/21/25 to 8/30/25. One per patient. Speak to a team member for more details.</em></p>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Terms -->
+
+    <!-- @COMPONENT: Patient Photos Carousel -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <!-- Happy dental patient with perfect smile after treatment -->
+                <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=400" 
+                     alt="Happy dental patient smiling" 
+                     class="rounded-xl shadow-lg w-full h-64 object-cover" />
+                <!-- Professional dental office interior with modern equipment -->
+                <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=400" 
+                     alt="Modern dental office interior" 
+                     class="rounded-xl shadow-lg w-full h-64 object-cover" />
+                <!-- Young person showing off their braces with a confident smile -->
+                <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=400" 
+                     alt="Patient with braces smiling confidently" 
+                     class="rounded-xl shadow-lg w-full h-64 object-cover" />
+            </div>
+            
+            <!-- Carousel Navigation Dots -->
+            <div class="flex justify-center space-x-2">
+                <button class="w-3 h-3 rounded-full bg-jefferson-blue"></button>
+                <button class="w-3 h-3 rounded-full bg-gray-300"></button>
+                <button class="w-3 h-3 rounded-full bg-gray-300"></button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Patient Photos Carousel -->
+
+    <!-- @COMPONENT: 5-Star Reviews -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">MORE THAN 40,000 5-STAR REVIEWS:</h2>
+            
+            <div class="relative overflow-hidden">
+                <!-- @STATE: currentTestimonial:number = 0 -->
+                <div class="flex transition-transform duration-500 ease-in-out" id="testimonialSlider">
+                    <!-- @MAP: testimonials.map(testimonial => ( -->
+                    <div class="w-full flex-shrink-0 px-4">
+                        <div class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+                            <div class="flex items-center justify-center mb-6">
+                                <i class="fas fa-quote-left text-jefferson-blue text-3xl mr-4"></i>
+                                <div class="flex text-yellow-400 text-2xl">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                            <blockquote class="text-lg text-gray-700 text-center mb-6 italic">
+                                "Very lovely staff. The doctor and team explained everything thoroughly and gave me an affordable way to pay for my dental work."
+                            </blockquote>
+                            <div class="text-center">
+                                <cite class="font-semibold text-gray-800">Mika M.</cite>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full flex-shrink-0 px-4">
+                        <div class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+                            <div class="flex items-center justify-center mb-6">
+                                <i class="fas fa-quote-left text-jefferson-blue text-3xl mr-4"></i>
+                                <div class="flex text-yellow-400 text-2xl">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                            <blockquote class="text-lg text-gray-700 text-center mb-6 italic">
+                                "My visit was great! Everyone was so nice, respectful, and gentle, always smiling. Thanks for helping me with my payments and answering all my questions and concerns about braces!"
+                            </blockquote>
+                            <div class="text-center">
+                                <cite class="font-semibold text-gray-800">Yadira M.</cite>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full flex-shrink-0 px-4">
+                        <div class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+                            <div class="flex items-center justify-center mb-6">
+                                <i class="fas fa-quote-left text-jefferson-blue text-3xl mr-4"></i>
+                                <div class="flex text-yellow-400 text-2xl">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                            <blockquote class="text-lg text-gray-700 text-center mb-6 italic">
+                                "Best experience that I ever had!!! All the workers are so nice and they have helped me so much with my anxiety towards the dentist office. I highly recommend to anyone needing a check-up."
+                            </blockquote>
+                            <div class="text-center">
+                                <cite class="font-semibold text-gray-800">Kasandra M.</cite>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+                
+                <!-- Navigation Arrows -->
+                <button class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow duration-200" id="prevTestimonial" data-event="click:previousTestimonial">
+                    <i class="fas fa-chevron-left text-gray-600"></i>
+                </button>
+                <button class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow duration-200" id="nextTestimonial" data-event="click:nextTestimonial">
+                    <i class="fas fa-chevron-right text-gray-600"></i>
+                </button>
+            </div>
+            
+            <div class="text-center mt-12">
+                <button class="bg-jefferson-blue text-white px-8 py-3 rounded-lg font-semibold hover:bg-jefferson-dark-blue transition-colors duration-200" data-event="click:bookAppointmentFromReviews">
+                    Book Your Appointment
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: 5-Star Reviews -->
+
+    <!-- @COMPONENT: iTero 3D Scanner -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl lg:text-4xl font-bold text-gray-800 mb-6">SEE YOUR SMILE IN 3D</h2>
+                    <p class="text-lg text-gray-700 mb-8">
+                        Our advanced technology, including the iTero 3D Scanner, is the roadmap to our future–one we can build together. The scanner allows us to show our patients exactly what the dentist sees and design a customized Smile Roadmap to help our patients achieve their best smile ever.
+                    </p>
+                </div>
+                <div>
+                    <!-- Advanced dental 3D scanning technology equipment in modern clinic -->
+                    <img src="https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
+                         alt="Advanced 3D dental scanning technology" 
+                         class="rounded-xl shadow-lg w-full h-auto" />
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: iTero 3D Scanner -->
+
+    <!-- @COMPONENT: ADA Safety Information -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="bg-white rounded-2xl shadow-lg p-8 lg:p-12">
+                <div class="grid lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <!-- ADA American Dental Association official logo -->
+                        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=200" 
+                             alt="ADA American Dental Association logo" 
+                             class="w-48 h-auto mb-4" />
+                    </div>
+                    <div>
+                        <p class="text-lg text-gray-700">
+                            According to studies by the ADA, COVID-19 infection rates of dentists remain lower than other health professionals. Jefferson Dental & Orthodontics remains committed to team member and patient safety, utilizing enhanced infection control procedures in all of our offices.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: ADA Safety Information -->
+
+    <!-- @COMPONENT: Final CTA -->
+    <section class="py-16 bg-jefferson-blue text-white">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <h2 class="text-3xl lg:text-4xl font-bold mb-8">SAVE UP TO $200* AT YOUR NEXT DENTAL VISIT</h2>
+            <button class="bg-jefferson-pink text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors duration-200 shadow-lg" data-event="click:finalBookAppointment">
+                Book Your Appointment
+            </button>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Final CTA -->
+
+    <!-- @COMPONENT: Chat Widget -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-4 max-w-xs" id="chatWidget">
+            <div class="flex items-center mb-3">
+                <i class="fas fa-tooth text-jefferson-blue text-xl mr-2"></i>
+                <div>
+                    <div class="font-semibold text-sm">Hi there, have a question?</div>
+                    <div class="text-xs text-gray-600">Text us here!</div>
+                </div>
+                <button class="ml-auto text-gray-400 hover:text-gray-600" onclick="document.getElementById('chatWidget').style.display='none'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: Chat Widget -->
+
+    <script>
+        (function() {
+            // TODO: Implement business logic, API calls, or state management
+            
+            // Countdown Timer Functionality
+            function updateCountdown() {
+                // This would normally connect to a real expiration date
+                const days = document.getElementById('days');
+                const hours = document.getElementById('hours');
+                const minutes = document.getElementById('minutes');
+                const seconds = document.getElementById('seconds');
+                
+                let currentSeconds = parseInt(seconds.textContent);
+                let currentMinutes = parseInt(minutes.textContent);
+                let currentHours = parseInt(hours.textContent);
+                let currentDays = parseInt(days.textContent);
+                
+                currentSeconds--;
+                
+                if (currentSeconds < 0) {
+                    currentSeconds = 59;
+                    currentMinutes--;
+                    
+                    if (currentMinutes < 0) {
+                        currentMinutes = 59;
+                        currentHours--;
+                        
+                        if (currentHours < 0) {
+                            currentHours = 23;
+                            currentDays--;
+                        }
+                    }
+                }
+                
+                days.textContent = currentDays;
+                hours.textContent = currentHours.toString().padStart(2, '0');
+                minutes.textContent = currentMinutes.toString().padStart(2, '0');
+                seconds.textContent = currentSeconds.toString().padStart(2, '0');
+            }
+            
+            // Start countdown
+            setInterval(updateCountdown, 1000);
+            
+            // Testimonials Carousel
+            let currentTestimonial = 0;
+            const testimonialSlider = document.getElementById('testimonialSlider');
+            const totalTestimonials = 3;
+            
+            function showTestimonial(index) {
+                const translateX = -index * 100;
+                testimonialSlider.style.transform = `translateX(${translateX}%)`;
+            }
+            
+            document.getElementById('nextTestimonial').addEventListener('click', function() {
+                currentTestimonial = (currentTestimonial + 1) % totalTestimonials;
+                showTestimonial(currentTestimonial);
+            });
+            
+            document.getElementById('prevTestimonial').addEventListener('click', function() {
+                currentTestimonial = (currentTestimonial - 1 + totalTestimonials) % totalTestimonials;
+                showTestimonial(currentTestimonial);
+            });
+            
+            // Auto-rotate testimonials
+            setInterval(function() {
+                currentTestimonial = (currentTestimonial + 1) % totalTestimonials;
+                showTestimonial(currentTestimonial);
+            }, 5000);
+            
+        })();
+    </script>
+</body>
+</html>
