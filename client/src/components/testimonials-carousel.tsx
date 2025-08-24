@@ -16,7 +16,11 @@ const testimonials = [
   }
 ];
 
-export default function TestimonialsCarousel() {
+interface TestimonialsCarouselProps {
+  onBookAppointment: () => void;
+}
+
+export default function TestimonialsCarousel({ onBookAppointment }: TestimonialsCarouselProps) {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   useEffect(() => {
@@ -90,7 +94,7 @@ export default function TestimonialsCarousel() {
           <button 
             className="bg-jefferson-blue text-white px-8 py-3 rounded-lg font-semibold hover:bg-jefferson-dark-blue transition-colors duration-200"
             data-testid="button-book-from-reviews"
-            onClick={() => window.open('https://www.jeffersondentalclinics.com/2025-back-to-school', '_blank')}
+            onClick={onBookAppointment}
           >
             Book Your Appointment
           </button>

@@ -1,6 +1,10 @@
 import { Phone } from "lucide-react";
 
-export default function Header() {
+interface HeaderProps {
+  onBookAppointment: () => void;
+}
+
+export default function Header({ onBookAppointment }: HeaderProps) {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +37,7 @@ export default function Header() {
             <button 
               className="bg-jefferson-blue text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg font-semibold hover:bg-jefferson-dark-blue transition-colors duration-200"
               data-testid="button-header-appointment"
-              onClick={() => window.open('https://www.jeffersondentalclinics.com/2025-back-to-school', '_blank')}
+              onClick={onBookAppointment}
             >
               BOOK AN APPOINTMENT
             </button>

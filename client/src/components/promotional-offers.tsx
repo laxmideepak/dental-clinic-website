@@ -1,6 +1,10 @@
 import { Check } from "lucide-react";
 
-export default function PromotionalOffers() {
+interface PromotionalOffersProps {
+  onBookAppointment: () => void;
+}
+
+export default function PromotionalOffers({ onBookAppointment }: PromotionalOffersProps) {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,7 +48,7 @@ export default function PromotionalOffers() {
             <button 
               className="w-full bg-jefferson-blue text-white py-3 px-6 rounded-lg font-semibold hover:bg-jefferson-dark-blue transition-colors duration-200"
               data-testid="button-dental-deal"
-              onClick={() => window.open('https://www.jeffersondentalclinics.com/2025-back-to-school', '_blank')}
+              onClick={onBookAppointment}
             >
               Get this Deal
             </button>
@@ -85,7 +89,7 @@ export default function PromotionalOffers() {
             <button 
               className="w-full bg-jefferson-lime text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-200"
               data-testid="button-ortho-deal"
-              onClick={() => window.open('https://www.jeffersondentalclinics.com/2025-back-to-school', '_blank')}
+              onClick={onBookAppointment}
             >
               Get this Deal
             </button>

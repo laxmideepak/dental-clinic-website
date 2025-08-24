@@ -7,7 +7,11 @@ interface TimeLeft {
   seconds: number;
 }
 
-export default function CountdownTimer() {
+interface CountdownTimerProps {
+  onBookAppointment: () => void;
+}
+
+export default function CountdownTimer({ onBookAppointment }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 6,
     hours: 2,
@@ -87,7 +91,7 @@ export default function CountdownTimer() {
         <button 
           className="bg-jefferson-pink text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors duration-200 shadow-lg"
           data-testid="button-countdown-book"
-          onClick={() => window.open('https://www.jeffersondentalclinics.com/2025-back-to-school', '_blank')}
+          onClick={onBookAppointment}
         >
           BOOK NOW AND SAVE
         </button>

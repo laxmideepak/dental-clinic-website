@@ -1,6 +1,10 @@
 import { Star } from "lucide-react";
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  onBookAppointment: () => void;
+}
+
+export default function HeroSection({ onBookAppointment }: HeroSectionProps) {
   return (
     <section className="hero-gradient text-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
@@ -41,7 +45,7 @@ export default function HeroSection() {
             <button 
               className="bg-jefferson-pink text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors duration-200 shadow-lg"
               data-testid="button-hero-book-now"
-              onClick={() => window.open('https://www.jeffersondentalclinics.com/2025-back-to-school', '_blank')}
+              onClick={onBookAppointment}
             >
               BOOK NOW & SAVE
             </button>

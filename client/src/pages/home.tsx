@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Header from "@/components/header";
 import HeroSection from "@/components/hero-section";
 import PromotionalOffers from "@/components/promotional-offers";
@@ -6,12 +7,18 @@ import TestimonialsCarousel from "@/components/testimonials-carousel";
 import IteroSection from "@/components/itero-section";
 import AdaSafety from "@/components/ada-safety";
 import ChatWidget from "@/components/chat-widget";
+import BookingModal from "@/components/booking-modal";
 
 export default function Home() {
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+
+  const openBookingModal = () => setIsBookingModalOpen(true);
+  const closeBookingModal = () => setIsBookingModalOpen(false);
+
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      <HeroSection />
+      <Header onBookAppointment={openBookingModal} />
+      <HeroSection onBookAppointment={openBookingModal} />
       
       {/* Back to School Heading */}
       <section className="py-12 bg-gray-50">
@@ -22,8 +29,8 @@ export default function Home() {
         </div>
       </section>
       
-      <PromotionalOffers />
-      <CountdownTimer />
+      <PromotionalOffers onBookAppointment={openBookingModal} />
+      <CountdownTimer onBookAppointment={openBookingModal} />
       
       {/* Terms */}
       <section className="py-8 bg-gray-50">
@@ -66,7 +73,7 @@ export default function Home() {
         </div>
       </section>
 
-      <TestimonialsCarousel />
+      <TestimonialsCarousel onBookAppointment={openBookingModal} />
       <IteroSection />
       <AdaSafety />
 
@@ -79,7 +86,7 @@ export default function Home() {
           <button 
             className="bg-jefferson-pink text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors duration-200 shadow-lg"
             data-testid="button-final-appointment"
-            onClick={() => window.open('https://www.jeffersondentalclinics.com/2025-back-to-school', '_blank')}
+            onClick={openBookingModal}
           >
             Book Your Appointment
           </button>
@@ -87,6 +94,7 @@ export default function Home() {
       </section>
 
       <ChatWidget />
+      <BookingModal isOpen={isBookingModalOpen} onClose={closeBookingModal} />
     </div>
   );
 }
