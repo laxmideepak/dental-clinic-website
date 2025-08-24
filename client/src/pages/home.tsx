@@ -8,6 +8,7 @@ import IteroSection from "@/components/itero-section";
 import AdaSafety from "@/components/ada-safety";
 import ChatWidget from "@/components/chat-widget";
 import BookingModal from "@/components/booking-modal";
+import Footer from "@/components/footer";
 
 export default function Home() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -66,7 +67,7 @@ export default function Home() {
           </div>
           
           <div className="flex justify-center space-x-2">
-            <button className="w-3 h-3 rounded-full bg-jefferson-blue"></button>
+            <button className="w-3 h-3 rounded-full bg-goto-blue"></button>
             <button className="w-3 h-3 rounded-full bg-gray-300"></button>
             <button className="w-3 h-3 rounded-full bg-gray-300"></button>
           </div>
@@ -78,21 +79,22 @@ export default function Home() {
       <AdaSafety />
 
       {/* Final CTA */}
-      <section className="py-16 bg-jefferson-blue text-white">
+      <section className="py-16 bg-goto-blue text-white">
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-3xl lg:text-4xl font-bold mb-8">
             SAVE UP TO $200* AT YOUR NEXT DENTAL VISIT
           </h2>
-          <button 
-            className="bg-jefferson-pink text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors duration-200 shadow-lg"
-            data-testid="button-final-appointment"
-            onClick={openBookingModal}
-          >
-            Book Your Appointment
-          </button>
+                      <button 
+              className="bg-goto-green text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-goto-dark-green transition-colors duration-200 shadow-lg"
+              data-testid="button-final-appointment"
+              onClick={openBookingModal}
+            >
+              Book an appointment
+            </button>
         </div>
       </section>
 
+      <Footer />
       <ChatWidget />
       <BookingModal isOpen={isBookingModalOpen} onClose={closeBookingModal} />
     </div>

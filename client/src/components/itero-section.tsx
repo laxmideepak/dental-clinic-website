@@ -10,8 +10,8 @@ export default function IteroSection() {
             <p className="text-lg text-gray-700 mb-8">
               Our advanced technology, including the{" "}
               <a 
-                href="https://www.jeffersondentalclinics.com/dental-services/itero-3d-scanning" 
-                className="text-jefferson-blue hover:underline"
+                href="#" 
+                className="text-goto-blue hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >

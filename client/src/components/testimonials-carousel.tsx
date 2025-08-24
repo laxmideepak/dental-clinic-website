@@ -55,7 +55,7 @@ export default function TestimonialsCarousel({ onBookAppointment }: Testimonials
               <div key={index} className="w-full flex-shrink-0 px-4">
                 <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
                   <div className="flex items-center justify-center mb-6">
-                    <Quote className="w-8 h-8 text-jefferson-blue mr-4" />
+                    <Quote className="w-8 h-8 text-goto-blue mr-4" />
                     <div className="flex text-yellow-400 text-2xl">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="w-6 h-6 fill-current" />
@@ -92,7 +92,7 @@ export default function TestimonialsCarousel({ onBookAppointment }: Testimonials
         
         <div className="text-center mt-12">
           <button 
-            className="bg-jefferson-blue text-white px-8 py-3 rounded-lg font-semibold hover:bg-jefferson-dark-blue transition-colors duration-200"
+            className="bg-goto-blue text-white px-8 py-3 rounded-lg font-semibold hover:bg-goto-dark-blue transition-colors duration-200"
             data-testid="button-book-from-reviews"
             onClick={onBookAppointment}
           >

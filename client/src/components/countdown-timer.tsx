@@ -89,7 +89,7 @@ export default function CountdownTimer({ onBookAppointment }: CountdownTimerProp
         </div>
         
         <button 
-          className="bg-jefferson-pink text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors duration-200 shadow-lg"
+                      className="bg-goto-green text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-goto-dark-green transition-colors duration-200 shadow-lg"
           data-testid="button-countdown-book"
           onClick={onBookAppointment}
         >

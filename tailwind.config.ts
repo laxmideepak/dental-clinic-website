@@ -61,13 +61,13 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
-        jefferson: {
-          blue: "var(--jefferson-blue)",
-          "dark-blue": "var(--jefferson-dark-blue)",
-          pink: "var(--jefferson-pink)",
-          lime: "var(--jefferson-lime)",
-          "gray-50": "var(--jefferson-gray-50)",
-          "gray-900": "var(--jefferson-gray-900)",
+        goto: {
+          green: "var(--goto-green)",
+          "dark-green": "var(--goto-dark-green)",
+          blue: "var(--goto-blue)",
+          "dark-blue": "var(--goto-dark-blue)",
+          "gray-50": "var(--goto-gray-50)",
+          "gray-900": "var(--goto-gray-900)",
         },
       },
       fontFamily: {

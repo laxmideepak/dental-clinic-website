@@ -13,7 +13,7 @@ export default function AdaSafety() {
             </div>
             <div>
               <p className="text-lg text-gray-700">
-                According to studies by the ADA, COVID-19 infection rates of dentists remain lower than other health professionals. Jefferson Dental & Orthodontics remains committed to team member and patient safety, utilizing enhanced infection control procedures in all of our offices.
+                According to studies by the ADA, COVID-19 infection rates of optometrists remain lower than other health professionals. GoTo Optical remains committed to team member and patient safety, utilizing enhanced infection control procedures in all of our offices.
               </p>
             </div>
           </div>
