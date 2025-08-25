@@ -350,18 +350,18 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
               
               {/* Current Patient Option */}
               <button 
-                className="w-full bg-purple-600 text-white p-6 hover:bg-purple-700 transition-colors duration-200 group"
+                className="w-full bg-purple-600 text-white p-4 sm:p-6 hover:bg-purple-700 transition-colors duration-200 group"
                 data-testid="button-current-patient"
                 onClick={handleCurrentPatient}
               >
                 <div className="flex items-center justify-between">
-                  <div className="text-left">
-                    <div className="text-xl font-bold mb-2">Current Patient</div>
-                    <div className="text-sm opacity-90">
+                  <div className="text-left flex-1 pr-3">
+                    <div className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">Current Patient</div>
+                    <div className="text-xs sm:text-sm opacity-90 leading-tight">
                       Book An Eye Exam, Contact Lens Fitting, Or Follow-Up Treatment Based On Your Vision Needs.
                     </div>
                   </div>
-                  <ChevronRight className="w-6 h-6 flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ml-2 sm:ml-4 group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
               </button>
             </>
@@ -380,46 +380,46 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
               {/* General Optometry */}
               <button 
-                className="w-full bg-blue-400 text-white p-6 rounded-xl hover:bg-blue-500 transition-colors duration-200 group"
+                className="w-full bg-blue-400 text-white p-4 sm:p-6 rounded-xl hover:bg-blue-500 transition-colors duration-200 group touch-manipulation"
                 onClick={handleGeneralOptometry}
               >
                 <div className="flex items-center justify-between">
-                  <div className="text-left">
-                    <div className="text-xl font-bold mb-2">General Optometry</div>
-                    <div className="text-sm opacity-90">
+                  <div className="text-left flex-1 pr-3">
+                    <div className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">General Optometry</div>
+                    <div className="text-xs sm:text-sm opacity-90 leading-tight">
                       (Eye Exam, Vision Test, Glasses Prescription, Etc)
                     </div>
                   </div>
-                  <ChevronRight className="w-6 h-6 flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ml-2 sm:ml-4 group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
               </button>
 
               {/* Contact Lens Fitting */}
               <button 
-                className="w-full bg-teal-600 text-white p-6 rounded-xl hover:bg-teal-700 transition-colors duration-200 group"
+                className="w-full bg-teal-600 text-white p-4 sm:p-6 rounded-xl hover:bg-teal-700 transition-colors duration-200 group touch-manipulation"
                 onClick={handleContactLensFitting}
               >
                 <div className="flex items-center justify-between">
-                  <div className="text-left">
-                    <div className="text-xl font-bold mb-2">Contact Lens Fitting</div>
-                    <div className="text-sm opacity-90">
+                  <div className="text-left flex-1 pr-3">
+                    <div className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">Contact Lens Fitting</div>
+                    <div className="text-xs sm:text-sm opacity-90 leading-tight">
                       Please Call +1 (214) 550-5005 To Schedule Appt.
                     </div>
                   </div>
-                  <ChevronRight className="w-6 h-6 flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ml-2 sm:ml-4 group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
               </button>
 
               {/* Chat Option */}
               <button 
-                className="w-full bg-green-400 text-gray-800 p-6 rounded-xl hover:bg-green-500 transition-colors duration-200 group"
+                className="w-full bg-green-400 text-gray-800 p-4 sm:p-6 rounded-xl hover:bg-green-500 transition-colors duration-200 group touch-manipulation"
                 onClick={handleChat}
               >
                 <div className="flex items-center justify-between">
-                  <div className="text-left">
-                    <div className="text-xl font-bold">Or Click Here To Chat</div>
+                  <div className="text-left flex-1 pr-3">
+                    <div className="text-lg sm:text-xl font-bold">Or Click Here To Chat</div>
                   </div>
-                  <ChevronRight className="w-6 h-6 flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ml-2 sm:ml-4 group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
               </button>
             </>
@@ -437,57 +437,57 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
               </button>
 
               {/* Location */}
-              <div className="mb-6">
-                <div className="text-lg font-semibold text-gray-800 mb-2">Dallas Office</div>
-                <div className="flex items-center text-sm text-gray-600">
+              <div className="mb-4 sm:mb-6">
+                <div className="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2">Dallas Office</div>
+                <div className="flex items-center text-xs sm:text-sm text-gray-600">
                   <span>Month View</span>
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
               </div>
 
               {/* Calendar */}
-              <div className="bg-white border rounded-lg mb-6">
+              <div className="bg-white border rounded-lg mb-4 sm:mb-6">
                 {/* Calendar Header */}
-                <div className="flex items-center justify-between p-4 border-b">
+                <div className="flex items-center justify-between p-3 sm:p-4 border-b">
                   <button 
                     onClick={handlePreviousMonth}
-                    className="p-2 hover:bg-gray-100 rounded-full"
+                    className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full touch-manipulation"
                     disabled={currentMonth.getMonth() === new Date().getMonth()}
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="text-base sm:text-lg font-semibold">
                     {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </h3>
                   
                   <button 
                     onClick={handleNextMonth}
-                    className="p-2 hover:bg-gray-100 rounded-full"
+                    className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full touch-manipulation"
                     disabled={currentMonth.getMonth() >= new Date().getMonth() + 2}
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
 
                 {/* Calendar Grid */}
-                <div className="p-4">
+                <div className="p-2 sm:p-4">
                   {/* Day Headers */}
-                  <div className="grid grid-cols-7 gap-1 mb-2">
+                  <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-2">
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                      <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                      <div key={day} className="text-center text-xs sm:text-sm font-medium text-gray-500 py-1 sm:py-2">
                         {day}
                       </div>
                     ))}
                   </div>
 
                   {/* Calendar Days */}
-                  <div className="grid grid-cols-7 gap-1">
+                  <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                     {/* Empty cells for days before month starts */}
                     {Array.from({ length: getFirstDayOfMonth(currentMonth) }, (_, i) => (
-                      <div key={`empty-${i}`} className="h-10" />
+                      <div key={`empty-${i}`} className="h-8 sm:h-10" />
                     ))}
                     
                     {/* Days of the month */}
@@ -503,7 +503,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                           key={day}
                           onClick={() => handleDateSelect(date)}
                           disabled={!isAvailable}
-                          className={`h-10 text-sm rounded-md transition-colors ${
+                          className={`h-8 sm:h-10 text-xs sm:text-sm rounded-md transition-colors touch-manipulation ${
                             isSelected
                               ? 'bg-goto-blue text-white'
                               : isAvailable
