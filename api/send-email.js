@@ -1,6 +1,14 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY);
+// Initialize Resend with proper error handling
+const resendApiKey = process.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY;
+console.log('📧 Initializing Resend with key length:', resendApiKey ? resendApiKey.length : 0);
+
+if (!resendApiKey) {
+  console.error('📧 CRITICAL: No Resend API key found in environment variables!');
+}
+
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,7 +16,24 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('📧 API Route - Environment check:', {
+      hasResendKey: !!process.env.VITE_RESEND_API_KEY,
+      hasAdminEmail: !!process.env.VITE_ADMIN_EMAIL,
+      hasFromEmail: !!process.env.VITE_FROM_EMAIL,
+      resendKeyLength: process.env.VITE_RESEND_API_KEY ? process.env.VITE_RESEND_API_KEY.length : 0
+    });
+
     const { bookingData } = req.body;
+
+    if (!bookingData) {
+      console.error('📧 No booking data provided');
+      return res.status(400).json({ error: 'No booking data provided' });
+    }
+
+    if (!resend) {
+      console.error('📧 Resend not initialized - missing API key');
+      return res.status(500).json({ error: 'Email service not configured' });
+    }
 
     // Format the appointment details
     const appointmentDateTime = `${bookingData.appointmentDate} at ${bookingData.appointmentTime}`;
