@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { X, ChevronRight } from "lucide-react";
+import { X, ChevronRight, ChevronLeft } from "lucide-react";
+import { bookAppointment, getExistingAppointments, type Appointment } from "../lib/supabase";
+import { sendBookingNotification, type BookingEmailData } from "../lib/email";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -8,29 +10,136 @@ interface BookingModalProps {
 
 export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
   const [step, setStep] = useState<'patient-type' | 'appointment-type' | 'date-time' | 'finish-scheduling'>('patient-type');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState<Date | null>(null);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [appointmentData, setAppointmentData] = useState({
+    patientType: '',
+    service: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    reasonForVisit: '',
+    hasInsurance: '',
+    howHeard: '',
+    notes: '',
+    consent: true
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Reset step when modal opens
   useEffect(() => {
     if (isOpen) {
       setStep('patient-type');
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setCurrentMonth(new Date());
+      setSubmitError(null);
+      setBookedSlots([]);
+      setAppointmentData({
+        patientType: '',
+        service: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        dateOfBirth: '',
+        reasonForVisit: '',
+        hasInsurance: '',
+        howHeard: '',
+        notes: '',
+        consent: true
+      });
     }
   }, [isOpen]);
 
+  // Helper functions for calendar
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const isDateAvailable = (date: Date) => {
+    const today = new Date();
+    const twoMonthsFromNow = new Date();
+    twoMonthsFromNow.setMonth(today.getMonth() + 2);
+    
+    return date >= today && date <= twoMonthsFromNow && date.getDay() !== 0; // Exclude Sundays
+  };
+
+  const formatDate = (date: Date) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    return `${days[date.getDay()]}, ${months[date.getMonth()]}. ${date.getDate()}`;
+  };
+
+  const generateTimeSlots = (date: Date) => {
+    const slots = [];
+    const isSaturday = date.getDay() === 6;
+    
+    // Morning slots: 9:10 AM - 1:10 PM (20-minute intervals)
+    for (let hour = 9; hour <= 13; hour++) {
+      for (let minute = 10; minute <= 50; minute += 20) {
+        if (hour === 13 && minute > 10) break; // Stop at 1:10 PM
+        const time = new Date(date);
+        time.setHours(hour, minute, 0, 0);
+        slots.push(time);
+      }
+    }
+    
+    // Afternoon slots: 2:30 PM - 5:30 PM (Saturday until 4:30 PM)
+    const endHour = isSaturday ? 16 : 17; // 4 PM or 5 PM
+    const endMinute = isSaturday ? 30 : 30; // 4:30 PM or 5:30 PM
+    
+    for (let hour = 14; hour <= endHour; hour++) {
+      for (let minute = 30; minute <= 50; minute += 20) {
+        if (hour === endHour && minute > endMinute) break;
+        const time = new Date(date);
+        time.setHours(hour, minute, 0, 0);
+        slots.push(time);
+      }
+    }
+    
+    return slots;
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
   const handleNewPatient = () => {
+    console.log('🔄 Setting step to appointment-type');
+    setAppointmentData(prev => ({ ...prev, patientType: 'New Patient' }));
     setStep('appointment-type');
   };
 
   const handleCurrentPatient = () => {
+    console.log('🔄 Setting step to appointment-type');
+    setAppointmentData(prev => ({ ...prev, patientType: 'Current Patient' }));
     setStep('appointment-type');
   };
 
   const handleGeneralOptometry = () => {
-    console.log('Setting step to date-time');
+    console.log('🔄 Setting step to date-time');
+    setAppointmentData(prev => ({ ...prev, service: 'General Optometry' }));
     setStep('date-time');
   };
 
   const handleContactLensFitting = () => {
-    console.log('Setting step to date-time for contact lens fitting');
+    console.log('🔄 Setting step to date-time');
+    setAppointmentData(prev => ({ ...prev, service: 'Contact Lens Fitting' }));
     setStep('date-time');
   };
 
@@ -52,17 +161,139 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
     window.open('tel:+12145505005');
   };
 
-  const handleTimeSlotSelect = () => {
+  const handleDateSelect = async (date: Date) => {
+    if (isDateAvailable(date)) {
+      setSelectedDate(date);
+      
+          // Fetch existing appointments for this date
+    try {
+      const existingAppointments = await getExistingAppointments(date.toISOString().split('T')[0]);
+      const bookedTimes = existingAppointments.map((apt: any) => {
+        // Create a date object from the stored UTC time
+        const appointmentTime = new Date(apt.starts_at);
+        
+        // Convert back to the original local time that was booked
+        // Since we stored local time as UTC, we need to adjust it back
+        const localTime = new Date(appointmentTime.getTime() + (appointmentTime.getTimezoneOffset() * 60000));
+        const timeString = localTime.toTimeString().slice(0, 5); // Gets "HH:MM"
+        
+        console.log('🕐 Processing appointment:', apt.starts_at, '→ UTC time:', appointmentTime.toLocaleTimeString(), '→ Corrected local:', timeString);
+        return timeString;
+      });
+      setBookedSlots(bookedTimes);
+      console.log('📅 Booked slots for', date.toDateString(), ':', bookedTimes);
+    } catch (error) {
+      console.error('Error fetching booked slots:', error);
+      setBookedSlots([]);
+    }
+    }
+  };
+
+  const handleTimeSlotSelect = (slot: Date) => {
+    setSelectedTime(slot);
     setStep('finish-scheduling');
   };
 
-  const handleScheduleAppointment = () => {
-    // Handle form submission
-    console.log('Scheduling appointment...');
-    onClose();
+  const handlePreviousMonth = () => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(currentMonth.getMonth() - 1);
+    
+    // Don't allow going before current month
+    const today = new Date();
+    if (newMonth >= new Date(today.getFullYear(), today.getMonth(), 1)) {
+      setCurrentMonth(newMonth);
+    }
+  };
+
+  const handleNextMonth = () => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(currentMonth.getMonth() + 1);
+    
+    // Don't allow going beyond 2 months from now
+    const today = new Date();
+    const twoMonthsFromNow = new Date(today.getFullYear(), today.getMonth() + 2, 1);
+    if (newMonth <= twoMonthsFromNow) {
+      setCurrentMonth(newMonth);
+    }
+  };
+
+  const handleScheduleAppointment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedTime || !appointmentData.email) {
+      setSubmitError('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // Format the time to preserve the local timezone
+      const localTimeString = new Date(selectedTime.getTime() - (selectedTime.getTimezoneOffset() * 60000)).toISOString();
+      
+      const appointmentPayload = {
+        customer_email: appointmentData.email,
+        customer_name: appointmentData.firstName && appointmentData.lastName 
+          ? `${appointmentData.firstName} ${appointmentData.lastName}`.trim()
+          : appointmentData.firstName || appointmentData.lastName || undefined,
+        service: appointmentData.service,
+        starts_at: localTimeString,
+        notes: [
+          appointmentData.reasonForVisit && `Reason: ${appointmentData.reasonForVisit}`,
+          appointmentData.phone && `Phone: ${appointmentData.phone}`,
+          appointmentData.dateOfBirth && `DOB: ${appointmentData.dateOfBirth}`,
+          appointmentData.hasInsurance && `Insurance: ${appointmentData.hasInsurance}`,
+          appointmentData.howHeard && `How heard: ${appointmentData.howHeard}`,
+          appointmentData.notes && `Additional notes: ${appointmentData.notes}`
+        ].filter(Boolean).join('\n')
+      };
+
+      await bookAppointment(appointmentPayload);
+      
+      // Send email notification to admin
+      try {
+        const emailData: BookingEmailData = {
+          patientType: appointmentData.patientType as 'current' | 'new',
+          appointmentType: appointmentData.service as 'general' | 'contact-lens',
+          appointmentDate: selectedTime.toLocaleDateString(),
+          appointmentTime: selectedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          customerInfo: {
+            firstName: appointmentData.firstName,
+            lastName: appointmentData.lastName,
+            email: appointmentData.email,
+            phone: appointmentData.phone,
+            dateOfBirth: appointmentData.dateOfBirth,
+            insurance: appointmentData.hasInsurance || undefined,
+            reasonForVisit: appointmentData.reasonForVisit || undefined,
+          }
+        };
+
+        const emailSent = await sendBookingNotification(emailData);
+        if (emailSent) {
+          console.log('📧 Email notification sent successfully');
+        } else {
+          console.log('📧 Email notification failed, but appointment was still booked');
+        }
+      } catch (emailError) {
+        console.error('📧 Error sending email notification:', emailError);
+        // Don't fail the booking if email fails
+      }
+      
+      // Success! Close modal and show success message
+      alert('Appointment booked successfully! We will contact you soon to confirm.');
+      onClose();
+    } catch (error: any) {
+      console.error('Error booking appointment:', error);
+      setSubmitError(error.message || 'Failed to book appointment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
+
+  console.log('🎯 Current step:', step);
 
   return (
     <div className="fixed inset-0 bg-blue-900 flex items-center justify-center z-50">
@@ -216,187 +447,117 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                 </div>
               </div>
 
-                             {/* Available Times */}
-               <div className="space-y-6 mb-6">
-                 {/* Monday */}
-                 <div>
-                   <div className="text-sm font-semibold text-gray-800 mb-3">Monday, Aug. 25</div>
-                   <div className="grid grid-cols-4 gap-2">
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:30 PM</button>
-                   </div>
-                 </div>
+              {/* Calendar */}
+              <div className="bg-white border rounded-lg mb-6">
+                {/* Calendar Header */}
+                <div className="flex items-center justify-between p-4 border-b">
+                  <button 
+                    onClick={handlePreviousMonth}
+                    className="p-2 hover:bg-gray-100 rounded-full"
+                    disabled={currentMonth.getMonth() === new Date().getMonth()}
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  
+                  <h3 className="text-lg font-semibold">
+                    {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </h3>
+                  
+                  <button 
+                    onClick={handleNextMonth}
+                    className="p-2 hover:bg-gray-100 rounded-full"
+                    disabled={currentMonth.getMonth() >= new Date().getMonth() + 2}
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
 
-                 {/* Tuesday */}
-                 <div>
-                   <div className="text-sm font-semibold text-gray-800 mb-3">Tuesday, Aug. 26</div>
-                   <div className="grid grid-cols-4 gap-2">
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:30 PM</button>
-                   </div>
-                 </div>
+                {/* Calendar Grid */}
+                <div className="p-4">
+                  {/* Day Headers */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                      <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
 
-                 {/* Wednesday */}
-                 <div>
-                   <div className="text-sm font-semibold text-gray-800 mb-3">Wednesday, Aug. 27</div>
-                   <div className="grid grid-cols-4 gap-2">
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:30 PM</button>
-                   </div>
-                 </div>
+                  {/* Calendar Days */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {/* Empty cells for days before month starts */}
+                    {Array.from({ length: getFirstDayOfMonth(currentMonth) }, (_, i) => (
+                      <div key={`empty-${i}`} className="h-10" />
+                    ))}
+                    
+                    {/* Days of the month */}
+                    {Array.from({ length: getDaysInMonth(currentMonth) }, (_, i) => {
+                      const day = i + 1;
+                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                      const isAvailable = isDateAvailable(date);
+                      const isSelected = selectedDate && 
+                        selectedDate.toDateString() === date.toDateString();
+                      
+                      return (
+                        <button
+                          key={day}
+                          onClick={() => handleDateSelect(date)}
+                          disabled={!isAvailable}
+                          className={`h-10 text-sm rounded-md transition-colors ${
+                            isSelected
+                              ? 'bg-goto-blue text-white'
+                              : isAvailable
+                              ? 'hover:bg-blue-100 text-gray-800'
+                              : 'text-gray-300 cursor-not-allowed'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
 
-                 {/* Thursday */}
-                 <div>
-                   <div className="text-sm font-semibold text-gray-800 mb-3">Thursday, Aug. 28</div>
-                   <div className="grid grid-cols-4 gap-2">
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:30 PM</button>
-                   </div>
-                 </div>
-
-                 {/* Friday */}
-                 <div>
-                   <div className="text-sm font-semibold text-gray-800 mb-3">Friday, Aug. 29</div>
-                   <div className="grid grid-cols-4 gap-2">
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">5:30 PM</button>
-                   </div>
-                 </div>
-
-                 {/* Saturday */}
-                 <div>
-                   <div className="text-sm font-semibold text-gray-800 mb-3">Saturday, Aug. 30</div>
-                   <div className="grid grid-cols-4 gap-2">
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">9:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">10:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:10 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:30 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">11:50 AM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">12:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">2:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:30 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">3:50 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:10 PM</button>
-                     <button onClick={handleTimeSlotSelect} className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition-colors font-medium">4:30 PM</button>
-                   </div>
-                 </div>
-               </div>
-
-              {/* View More Days Button */}
-              <button className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded mb-6 hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center">
-                <span>VIEW MORE DAYS</span>
-                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+              {/* Time Slots - Only show when date is selected */}
+              {selectedDate && (
+                <div className="mb-6">
+                  <div className="text-sm font-semibold text-gray-800 mb-3">
+                    Available times for {formatDate(selectedDate)}
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {generateTimeSlots(selectedDate).map((slot, index) => {
+                      // Check if this slot is already booked using simple time comparison
+                      const slotTimeString = slot.toTimeString().slice(0, 5); // Gets "HH:MM"
+                      const isBooked = bookedSlots.includes(slotTimeString);
+                      
+                      // Debug logging for the first few slots
+                      if (index < 3) {
+                        console.log('🔍 Slot', formatTime(slot), ':', {
+                          slotTimeString,
+                          bookedSlots,
+                          isBooked
+                        });
+                      }
+                      
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => !isBooked && handleTimeSlotSelect(slot)}
+                          disabled={isBooked}
+                          className={`px-3 py-2 rounded-md text-sm transition-colors font-medium ${
+                            isBooked 
+                              ? 'bg-red-100 text-red-500 cursor-not-allowed opacity-50' 
+                              : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                          }`}
+                        >
+                          {formatTime(slot)} {isBooked && '(Booked)'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Call Us Button */}
               <button 
@@ -422,48 +583,65 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                  Back
                </button>
 
-               {/* Form Fields */}
-               <div className="space-y-4">
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                   <input 
-                     type="text" 
-                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
-                     placeholder="Enter your first name"
-                   />
-                 </div>
+                             {/* Form Fields */}
+              <form onSubmit={handleScheduleAppointment} className="space-y-4">
+                {submitError && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    {submitError}
+                  </div>
+                )}
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                  <input 
+                    type="text" 
+                    value={appointmentData.firstName}
+                    onChange={(e) => setAppointmentData(prev => ({ ...prev, firstName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
+                    placeholder="Enter your first name"
+                  />
+                </div>
 
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                   <input 
-                     type="text" 
-                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
-                     placeholder="Enter your last name"
-                   />
-                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                  <input 
+                    type="text" 
+                    value={appointmentData.lastName}
+                    onChange={(e) => setAppointmentData(prev => ({ ...prev, lastName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
+                    placeholder="Enter your last name"
+                  />
+                </div>
 
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                   <input 
-                     type="tel" 
-                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
-                     placeholder="Enter your phone number"
-                   />
-                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    value={appointmentData.phone}
+                    onChange={(e) => setAppointmentData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
 
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                   <input 
-                     type="email" 
-                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
-                     placeholder="Enter your email"
-                   />
-                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                  <input 
+                    type="email" 
+                    required
+                    value={appointmentData.email}
+                    onChange={(e) => setAppointmentData(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
+                    placeholder="Enter your email"
+                  />
+                </div>
 
                  <div>
                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth (mm-dd-yyyy)</label>
                    <input 
                      type="text" 
+                     value={appointmentData.dateOfBirth}
+                     onChange={(e) => setAppointmentData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
                      placeholder="mm-dd-yyyy"
                    />
@@ -471,7 +649,11 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
                  <div>
                    <label className="block text-sm font-medium text-gray-700 mb-2">What is the main reason for your visit?</label>
-                   <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent">
+                   <select 
+                     value={appointmentData.reasonForVisit}
+                     onChange={(e) => setAppointmentData(prev => ({ ...prev, reasonForVisit: e.target.value }))}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
+                   >
                      <option value="">Select a reason</option>
                      <option value="eye-exam">Eye Exam</option>
                      <option value="glasses">Glasses Prescription</option>
@@ -483,7 +665,11 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
                  <div>
                    <label className="block text-sm font-medium text-gray-700 mb-2">Do you plan on using vision insurance during your visit?</label>
-                   <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent">
+                   <select 
+                     value={appointmentData.hasInsurance}
+                     onChange={(e) => setAppointmentData(prev => ({ ...prev, hasInsurance: e.target.value }))}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
+                   >
                      <option value="">Select an option</option>
                      <option value="yes">Yes</option>
                      <option value="no">No</option>
@@ -493,7 +679,11 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
                  <div>
                    <label className="block text-sm font-medium text-gray-700 mb-2">How did you hear about us?</label>
-                   <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent">
+                   <select 
+                     value={appointmentData.howHeard}
+                     onChange={(e) => setAppointmentData(prev => ({ ...prev, howHeard: e.target.value }))}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
+                   >
                      <option value="">Select an option</option>
                      <option value="google">Google Search</option>
                      <option value="social-media">Social Media</option>
@@ -501,6 +691,17 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                      <option value="advertisement">Advertisement</option>
                      <option value="other">Other</option>
                    </select>
+                 </div>
+
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                   <textarea 
+                     value={appointmentData.notes}
+                     onChange={(e) => setAppointmentData(prev => ({ ...prev, notes: e.target.value }))}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-goto-blue focus:border-transparent"
+                     rows={3}
+                     placeholder="Any additional information or special requests"
+                   />
                  </div>
 
                  {/* Note */}
@@ -513,8 +714,9 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                    <input 
                      type="checkbox" 
                      id="consent" 
+                     checked={appointmentData.consent}
+                     onChange={(e) => setAppointmentData(prev => ({ ...prev, consent: e.target.checked }))}
                      className="mt-1 mr-3"
-                     defaultChecked
                    />
                    <label htmlFor="consent" className="text-sm text-gray-700">
                      Yes, I understand that by checking this box I am agreeing to receive email and text messages from GoTo Optical regarding upcoming appointments, promotions and services and can unsubscribe at any time.
@@ -523,12 +725,13 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
                  {/* Schedule Button */}
                  <button 
-                   onClick={handleScheduleAppointment}
-                   className="w-full bg-goto-green text-white py-4 px-6 rounded font-semibold hover:bg-goto-dark-green transition-colors duration-200 mt-6"
+                   type="submit"
+                   disabled={isSubmitting || !appointmentData.email || !appointmentData.consent}
+                   className="w-full bg-goto-green text-white py-4 px-6 rounded font-semibold hover:bg-goto-dark-green transition-colors duration-200 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
                  >
-                   SCHEDULE AN APPOINTMENT
+                   {isSubmitting ? 'SCHEDULING...' : 'SCHEDULE AN APPOINTMENT'}
                  </button>
-               </div>
+               </form>
              </>
            )}
          </div>
