@@ -296,8 +296,8 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
   console.log('🎯 Current step:', step);
 
   return (
-    <div className="fixed inset-0 bg-blue-900 flex items-center justify-center z-50">
-      <div className="bg-white w-full h-full max-w-md max-h-full overflow-y-auto">
+    <div className="fixed inset-0 bg-blue-900 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white w-full h-full sm:max-w-md sm:max-h-[95vh] sm:rounded-lg overflow-y-auto">
         {/* Close Button */}
         <button 
           onClick={onClose}
@@ -308,18 +308,18 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
         </button>
         
         {/* Header */}
-        <div className="p-8 pb-6">
+        <div className="p-4 sm:p-8 pb-4 sm:pb-6">
           {/* Logo */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-4 sm:mb-8">
             <img 
               src="/logo.jpg" 
               alt="GoTo Optical - EYEWEAR + EYECARE" 
-              className="h-16 w-auto"
+              className="h-12 sm:h-16 w-auto"
             />
           </div>
           
           {/* Title */}
-          <h2 className="text-2xl font-bold text-gray-800 text-center mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 text-center mb-4 sm:mb-8 leading-tight px-2">
             {step === 'patient-type' ? "Let's Get Started! Are you a..." : 
              step === 'appointment-type' ? "I'm Scheduling an Appointment for:" :
              step === 'date-time' ? "Select Date and Time" :
@@ -328,23 +328,23 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
         </div>
         
         {/* Options */}
-        <div className="px-8 pb-8 space-y-4">
+        <div className="px-4 sm:px-8 pb-4 sm:pb-8 space-y-3 sm:space-y-4">
           {step === 'patient-type' && (
             <>
               {/* New Patient Option */}
               <button 
-                className="w-full bg-pink-500 text-white p-6 hover:bg-pink-600 transition-colors duration-200 group"
+                className="w-full bg-pink-500 text-white p-4 sm:p-6 hover:bg-pink-600 transition-colors duration-200 group touch-manipulation"
                 data-testid="button-new-patient"
                 onClick={handleNewPatient}
               >
                 <div className="flex items-center justify-between">
-                  <div className="text-left">
-                    <div className="text-xl font-bold mb-2">New Patient</div>
-                    <div className="text-sm opacity-90">
+                  <div className="text-left flex-1 pr-3">
+                    <div className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">New Patient</div>
+                    <div className="text-xs sm:text-sm opacity-90 leading-tight">
                       Your First Visit Includes An Eye Exam, Necessary Tests, And A Consultation.
                     </div>
                   </div>
-                  <ChevronRight className="w-6 h-6 flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ml-2 sm:ml-4 group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
               </button>
               

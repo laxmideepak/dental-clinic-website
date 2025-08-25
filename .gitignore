@@ -61,3 +61,4 @@ temp/
 *.tar.gz
 *.zip
 *.rar
+.vercel
