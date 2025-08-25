@@ -1,31 +1,4 @@
-import { Resend } from 'resend';
-
-// Lazy initialization function
-function initializeResend() {
-  console.log('📧 Initializing Resend service...');
-  console.log('📧 Environment check:', {
-    hasResendKey: !!import.meta.env.VITE_RESEND_API_KEY,
-    hasAdminEmail: !!import.meta.env.VITE_ADMIN_EMAIL,
-    hasFromEmail: !!import.meta.env.VITE_FROM_EMAIL,
-    mode: import.meta.env.MODE,
-    dev: import.meta.env.DEV
-  });
-
-  const resendApiKey = import.meta.env.VITE_RESEND_API_KEY;
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@gotooptical.com';
-  const fromEmail = import.meta.env.VITE_FROM_EMAIL || 'onboarding@resend.dev';
-
-  if (resendApiKey) {
-    const resend = new Resend(resendApiKey);
-    console.log('📧 Resend initialized successfully');
-    console.log('📧 From:', fromEmail, '→ To:', adminEmail);
-    return { resend, adminEmail, fromEmail };
-  } else {
-    console.log('📧 Resend API key not found - email notifications disabled');
-    console.log('📧 Demo mode: Email details will be logged to console');
-    return { resend: null, adminEmail, fromEmail };
-  }
-}
+// Email service using backend API to avoid CORS issues
 
 export interface BookingEmailData {
   patientType: 'current' | 'new';
@@ -72,6 +45,6 @@ export async function sendBookingNotification(bookingData: BookingEmailData): Pr
 }
 
 export function isEmailServiceConfigured(): boolean {
-  const { resend } = initializeResend();
-  return !!resend;
+  // Since we're now using backend API, we just need to check if we're in production
+  return import.meta.env.MODE === 'production';
 }
