@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   console.log('🧪 Test API route called');
   console.log('🧪 Environment variables:', {
     hasResendKey: !!process.env.RESEND_API_KEY,
