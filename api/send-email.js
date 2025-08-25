@@ -81,7 +81,7 @@ export default async function handler(req, res) {
       `;
 
       const { data, error } = await resend.emails.send({
-        from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+        from: 'GoTo Optical <onboarding@resend.dev>',
         to: [process.env.ADMIN_EMAIL || 'info@gotooptical.com'],
         subject: `New Appointment: ${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName} - ${appointmentDateTime}`,
         text: emailContent,
