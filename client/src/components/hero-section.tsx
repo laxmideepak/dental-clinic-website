@@ -7,8 +7,8 @@ interface HeroSectionProps {
 export default function HeroSection({ onBookAppointment }: HeroSectionProps) {
   return (
     <section className="hero-gradient text-white relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-20">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-20">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
           {/* Left Content */}
           <div className="text-center lg:text-left z-10 relative">
             {/* Tooth and Pencil Illustration */}
@@ -38,9 +38,9 @@ export default function HeroSection({ onBookAppointment }: HeroSectionProps) {
               </div>
             </div>
             
-            <div className="mb-2 text-base lg:text-lg font-medium">up to</div>
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-3 lg:mb-4">$200 OFF*</h1>
-            <p className="text-lg sm:text-xl lg:text-2xl font-semibold mb-6 lg:mb-8">SMILE BRIGHT THIS SCHOOL YEAR!</p>
+            <div className="mb-1 sm:mb-2 text-sm sm:text-base lg:text-lg font-medium">up to</div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-7xl font-bold mb-2 sm:mb-3 lg:mb-4 leading-tight">$200 OFF*</h1>
+            <p className="text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold mb-4 sm:mb-6 lg:mb-8 leading-tight px-2 sm:px-0">SMILE BRIGHT THIS SCHOOL YEAR!</p>
             
             <button 
               className="bg-goto-green text-white px-6 py-3 lg:px-8 lg:py-4 rounded-lg font-bold text-base lg:text-lg hover:bg-goto-dark-green transition-colors duration-200 shadow-lg"
