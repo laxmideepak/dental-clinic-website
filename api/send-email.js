@@ -27,10 +27,12 @@ export default async function handler(req, res) {
 
   try {
     console.log('📧 API Route - Environment check:', {
-      hasResendKey: !!process.env.VITE_RESEND_API_KEY,
-      hasAdminEmail: !!process.env.VITE_ADMIN_EMAIL,
-      hasFromEmail: !!process.env.VITE_FROM_EMAIL,
-      resendKeyLength: process.env.VITE_RESEND_API_KEY ? process.env.VITE_RESEND_API_KEY.length : 0
+      hasResendKey: !!resendApiKey,
+      hasAdminEmail: !!adminEmail,
+      hasFromEmail: !!fromEmail,
+      resendKeyLength: resendApiKey ? resendApiKey.length : 0,
+      adminEmail: adminEmail,
+      fromEmail: fromEmail
     });
 
     const { bookingData } = req.body;
