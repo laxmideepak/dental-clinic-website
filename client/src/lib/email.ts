@@ -19,28 +19,15 @@ export interface BookingEmailData {
 export async function sendBookingNotification(bookingData: BookingEmailData): Promise<boolean> {
   try {
     console.log('📧 Sending booking notification...');
-    console.log('📧 Environment:', {
-      mode: import.meta.env.MODE,
-      isDev: import.meta.env.DEV,
-      isProd: import.meta.env.PROD
+    console.log('📧 Booking data:', {
+      patient: `${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
+      email: bookingData.customerInfo.email,
+      date: bookingData.appointmentDate,
+      time: bookingData.appointmentTime,
+      type: bookingData.appointmentType
     });
     
-    // In development, just log the email data (no actual sending)
-    if (import.meta.env.DEV) {
-      console.log('📧 DEV MODE: Email would be sent with data:', {
-        to: 'info@gotooptical.com',
-        subject: `New Appointment: ${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
-        appointmentDate: bookingData.appointmentDate,
-        appointmentTime: bookingData.appointmentTime,
-        patientType: bookingData.patientType,
-        appointmentType: bookingData.appointmentType,
-        customerInfo: bookingData.customerInfo
-      });
-      console.log('📧 DEV MODE: Email notification simulated successfully!');
-      return true;
-    }
-    
-    // In production, use the backend API
+    // Always use the backend API (works in both dev and production)
     const response = await fetch('/api/send-email', {
       method: 'POST',
       headers: {
@@ -50,13 +37,17 @@ export async function sendBookingNotification(bookingData: BookingEmailData): Pr
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      console.error('📧 Backend API error:', errorData);
+      const errorText = await response.text();
+      console.error('📧 Backend API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
       return false;
     }
 
     const result = await response.json();
-    console.log('📧 Email sent successfully via backend API!', result);
+    console.log('📧 Booking notification processed successfully!', result);
     return true;
     
   } catch (error) {
