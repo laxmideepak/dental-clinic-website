@@ -1,8 +1,18 @@
 import { Resend } from 'resend';
 
 // Initialize Resend with proper error handling
-const resendApiKey = process.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY;
+const resendApiKey = process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY;
+const adminEmail = process.env.ADMIN_EMAIL || process.env.VITE_ADMIN_EMAIL || 'info@gotooptical.com';
+const fromEmail = process.env.FROM_EMAIL || process.env.VITE_FROM_EMAIL || 'onboarding@resend.dev';
+
 console.log('📧 Initializing Resend with key length:', resendApiKey ? resendApiKey.length : 0);
+console.log('📧 Environment variables:', {
+  hasResendKey: !!resendApiKey,
+  hasAdminEmail: !!adminEmail,
+  hasFromEmail: !!fromEmail,
+  adminEmail: adminEmail,
+  fromEmail: fromEmail
+});
 
 if (!resendApiKey) {
   console.error('📧 CRITICAL: No Resend API key found in environment variables!');
@@ -99,8 +109,8 @@ This is an automated notification from your GoTo Optical booking system.
 Please contact the patient to confirm their appointment.`;
 
     const { data, error } = await resend.emails.send({
-      from: process.env.VITE_FROM_EMAIL || 'onboarding@resend.dev',
-      to: [process.env.VITE_ADMIN_EMAIL || 'info@gotooptical.com'],
+      from: fromEmail,
+      to: [adminEmail],
       subject: `New Appointment: ${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName} - ${appointmentDateTime}`,
       html: htmlContent,
       text: textContent,
